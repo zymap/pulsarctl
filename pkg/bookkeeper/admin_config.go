@@ -15,30 +15,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package common
+package bookkeeper
 
-type APIVersion int
+import (
+	"time"
 
-const (
-	None APIVersion = iota
-	V1
-	V2
-	V3
+	"github.com/streamnative/pulsarctl/pkg/pulsar/common"
 )
 
-const DefaultAPIVersion = "v2"
+const (
+	DefaultWebServiceURL       = "http://localhost:8080"
+	DefaultHTTPTimeOutDuration = 5 * time.Minute
+)
 
-func (v APIVersion) String() string {
-	switch v {
-	case None:
-		return ""
-	case V1:
-		return "v1"
-	case V2:
-		return "v2"
-	case V3:
-		return "v3"
+var ReleaseVersion = "None"
+
+// Config is used to configure the bookKeeper admin client
+type Config struct {
+	WebServiceURL string
+	HTTPTimeout   time.Duration
+	APIVersion    common.APIVersion
+}
+
+// DefaultConfig for a bookKeeper admin client
+func DefaultConfig() *Config {
+	return &Config{
+		WebServiceURL: DefaultWebServiceURL,
+		HTTPTimeout:   DefaultHTTPTimeOutDuration,
 	}
-
-	return DefaultAPIVersion
 }

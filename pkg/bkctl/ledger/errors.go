@@ -15,30 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package common
+package ledger
 
-type APIVersion int
+import "github.com/streamnative/pulsarctl/pkg/cmdutils"
 
-const (
-	None APIVersion = iota
-	V1
-	V2
-	V3
-)
-
-const DefaultAPIVersion = "v2"
-
-func (v APIVersion) String() string {
-	switch v {
-	case None:
-		return ""
-	case V1:
-		return "v1"
-	case V2:
-		return "v2"
-	case V3:
-		return "v3"
-	}
-
-	return DefaultAPIVersion
+var argError = cmdutils.Output{
+	Desc: "the ledger id is not specified or the ledger id is specified more than one",
+	Out:  "[✖]  the ledger id is not specified or the ledger id is specified more than one",
 }

@@ -15,30 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package common
+package ledger
 
-type APIVersion int
+import (
+	"github.com/streamnative/pulsarctl/pkg/cmdutils"
 
-const (
-	None APIVersion = iota
-	V1
-	V2
-	V3
+	"github.com/spf13/cobra"
 )
 
-const DefaultAPIVersion = "v2"
+func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
+	resourceCmd := cmdutils.NewResourceCmd(
+		"ledger",
+		"Operations about ledger",
+		"",
+		"")
 
-func (v APIVersion) String() string {
-	switch v {
-	case None:
-		return ""
-	case V1:
-		return "v1"
-	case V2:
-		return "v2"
-	case V3:
-		return "v3"
+	commands := []func(*cmdutils.VerbCmd){
+		DeleteCmd,
+		GetCmd,
+		ListCmd,
+		ReadCmd,
 	}
 
-	return DefaultAPIVersion
+	cmdutils.AddVerbCmds(flagGrouping, resourceCmd, commands...)
+
+	return resourceCmd
 }

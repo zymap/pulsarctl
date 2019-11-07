@@ -15,30 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package common
+package bkctl
 
-type APIVersion int
-
-const (
-	None APIVersion = iota
-	V1
-	V2
-	V3
+import (
+	"github.com/spf13/cobra"
+	"github.com/streamnative/pulsarctl/pkg/bkctl/ledger"
+	"github.com/streamnative/pulsarctl/pkg/cmdutils"
 )
 
-const DefaultAPIVersion = "v2"
+func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
+	resourceCmd := cmdutils.NewResourceCmd(
+		"bk",
+		"Operations about bookKeeper",
+		"",
+		"",
+	)
 
-func (v APIVersion) String() string {
-	switch v {
-	case None:
-		return ""
-	case V1:
-		return "v1"
-	case V2:
-		return "v2"
-	case V3:
-		return "v3"
-	}
+	resourceCmd.AddCommand(ledger.Command(flagGrouping))
 
-	return DefaultAPIVersion
+	return resourceCmd
 }

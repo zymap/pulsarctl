@@ -15,30 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package common
+package ledger
 
-type APIVersion int
+import (
+	"testing"
 
-const (
-	None APIVersion = iota
-	V1
-	V2
-	V3
+	"github.com/stretchr/testify/assert"
 )
 
-const DefaultAPIVersion = "v2"
+func TestGetArgError(t *testing.T) {
+	args := []string{"get"}
+	_, _, nameErr, _ := TestLedgerCommands(GetCmd, args)
+	assert.NotNil(t, nameErr)
+	assert.Equal(t, "the ledger id is not specified or the ledger id is specified more than one",
+		nameErr.Error())
 
-func (v APIVersion) String() string {
-	switch v {
-	case None:
-		return ""
-	case V1:
-		return "v1"
-	case V2:
-		return "v2"
-	case V3:
-		return "v3"
-	}
+	args = []string{"get", "a"}
+	_, execErr, _, _ := TestLedgerCommands(GetCmd, args)
+	assert.NotNil(t, execErr)
+	assert.Equal(t, "invalid ledger id a", execErr.Error())
 
-	return DefaultAPIVersion
+	args = []string{"get", "--", "-1"}
+	_, execErr, _, _ = TestLedgerCommands(GetCmd, args)
+	assert.NotNil(t, execErr)
+	assert.Equal(t, "invalid ledger id -1", execErr.Error())
 }
