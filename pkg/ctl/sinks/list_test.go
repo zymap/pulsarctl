@@ -53,15 +53,26 @@ func TestListSinks(t *testing.T) {
 		"--sink-config-file", basePath + "/test/sinks/mysql-jdbc-sink.yaml",
 	}
 
-	createOut, _, err := TestSinksCommands(createSinksCmd, args)
-	assert.Nil(t, err)
-	assert.Equal(t, createOut.String(), "Created test-sink-list successfully\n")
+	createOut, execErr, err := TestSinksCommands(createSinksCmd, args)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if execErr != nil {
+		t.Fatal(execErr)
+	}
+	assert.Equal(t, "Created test-sink-list successfully\n", createOut.String())
 
 	listArgs := []string{"--admin-service-url", requestURL, "list",
 		"--tenant", "public",
 		"--namespace", "default",
 	}
-	listOut, _, _ := TestSinksCommands(listSinksCmd, listArgs)
+	listOut, execErr, err := TestSinksCommands(listSinksCmd, listArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if execErr != nil {
+		t.Fatal(execErr)
+	}
 	assert.True(t, strings.Contains(listOut.String(), "test-sink-list"))
 
 	deleteArgs := []string{"--admin-service-url", requestURL, "delete",
@@ -70,10 +81,22 @@ func TestListSinks(t *testing.T) {
 		"--name", "test-sink-list",
 	}
 
-	deleteOut, _, _ := TestSinksCommands(deleteSinksCmd, deleteArgs)
+	deleteOut, execErr, err := TestSinksCommands(deleteSinksCmd, deleteArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if execErr != nil {
+		t.Fatal(execErr)
+	}
 	assert.Equal(t, deleteOut.String(), "Deleted test-sink-list successfully\n")
 
 	listArgsAgain := []string{"--admin-service-url", requestURL, "list"}
-	sinks, _, _ := TestSinksCommands(listSinksCmd, listArgsAgain)
+	sinks, execErr, err := TestSinksCommands(listSinksCmd, listArgsAgain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if execErr != nil {
+		t.Fatal(execErr)
+	}
 	assert.False(t, strings.Contains(sinks.String(), "test-sink-list"))
 }

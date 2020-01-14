@@ -24,26 +24,26 @@ import (
 	"github.com/streamnative/pulsarctl/pkg/test"
 )
 
-type standalone struct {
+type Standalone struct {
 	*test.BaseContainer
 	spec *ClusterSpec
 }
 
-func NewStandalone(spec *ClusterSpec) *standalone {
+func NewStandalone(spec *ClusterSpec) *Standalone {
 	s := test.NewContainer(spec.Image)
 	s.ExposedPorts([]string{strconv.Itoa(spec.BrokerHTTPServicePort), strconv.Itoa(spec.BrokerServicePort)})
 	s.WithCmd([]string{
-		"bin/pulsar", "standalone",
+		"bin/pulsar", "Standalone",
 	})
 	s.WaitForPort(strconv.Itoa(spec.BrokerHTTPServicePort))
-	return &standalone{s, spec}
+	return &Standalone{s, spec}
 }
 
-func DefaultStandalone() *standalone {
+func DefaultStandalone() *Standalone {
 	return NewStandalone(DefaultClusterSpec())
 }
 
-func (s *standalone) GetHTTPServiceURL(ctx context.Context) (string, error) {
+func (s *Standalone) GetHTTPServiceURL(ctx context.Context) (string, error) {
 	port, err := s.MappedPort(ctx, strconv.Itoa(s.spec.BrokerHTTPServicePort))
 	if err != nil {
 		return "", err
