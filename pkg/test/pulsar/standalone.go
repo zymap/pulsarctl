@@ -33,7 +33,7 @@ func NewStandalone(spec *ClusterSpec) *Standalone {
 	s := test.NewContainer(spec.Image)
 	s.ExposedPorts([]string{strconv.Itoa(spec.BrokerHTTPServicePort), strconv.Itoa(spec.BrokerServicePort)})
 	s.WithCmd([]string{
-		"bin/pulsar", "Standalone",
+		"bin/pulsar", "standalone",
 	})
 	s.WaitForPort(strconv.Itoa(spec.BrokerHTTPServicePort))
 	return &Standalone{s, spec}
