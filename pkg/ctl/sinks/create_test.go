@@ -20,8 +20,10 @@ package sinks
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/streamnative/pulsarctl/pkg/test"
 	"github.com/streamnative/pulsarctl/pkg/test/pulsar"
 
 	"github.com/stretchr/testify/assert"
@@ -78,6 +80,12 @@ func TestFailureCreateSinks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	out, err := test.ExecCmd(c.GetContainerID(), []string{"bin/pulsar-admin", "namespaces", "list", "public"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.True(t, strings.Contains(out, "public/default"))
 
 	basePath, err := getDirHelp()
 	if basePath == "" || err != nil {
