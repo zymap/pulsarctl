@@ -17,14 +17,36 @@
 
 package pulsar
 
-import "github.com/streamnative/pulsarctl/pkg/test"
+import (
+	"context"
+	"strconv"
 
-func NewStandalone(image string) *test.BaseContainer {
-	s := test.NewContainer(image)
-	s.ExposedPorts([]string{"8080", "6650"})
+	"github.com/streamnative/pulsarctl/pkg/test"
+)
+
+type standalone struct {
+	*test.BaseContainer
+	spec *ClusterSpec
+}
+
+func NewStandalone(spec *ClusterSpec) *standalone {
+	s := test.NewContainer(spec.Image)
+	s.ExposedPorts([]string{strconv.Itoa(spec.BrokerHTTPServicePort), strconv.Itoa(spec.BrokerServicePort)})
 	s.WithCmd([]string{
 		"bin/pulsar", "standalone",
 	})
-	s.WaitForPort("8080")
-	return s
+	s.WaitForPort(strconv.Itoa(spec.BrokerHTTPServicePort))
+	return &standalone{s, spec}
+}
+
+func DefaultStandalone() *standalone {
+	return NewStandalone(DefaultClusterSpec())
+}
+
+func (s *standalone) GetHTTPServiceURL(ctx context.Context) (string, error) {
+	port, err := s.MappedPort(ctx, strconv.Itoa(s.spec.BrokerHTTPServicePort))
+	if err != nil {
+		return "", err
+	}
+	return "http://localhost:" + port.Port(), nil
 }

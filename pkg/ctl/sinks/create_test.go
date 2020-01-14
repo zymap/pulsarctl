@@ -18,22 +18,33 @@
 package sinks
 
 import (
-	"fmt"
+	"context"
 	"os"
-	"strings"
 	"testing"
+
+	"github.com/streamnative/pulsarctl/pkg/test/pulsar"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateSinks(t *testing.T) {
+	ctx := context.Background()
+	c := pulsar.DefaultStandalone()
+	c.WaitForLog("Function worker service started")
+	c.Start(ctx)
+	defer c.Stop(ctx)
+
+	requestURL, err := c.GetHTTPServiceURL(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	basePath, err := getDirHelp()
 	if basePath == "" || err != nil {
 		t.Error(err)
 	}
-	t.Logf("base path: %s", basePath)
 
-	args := []string{"create",
+	args := []string{"--admin-service-url", requestURL, "create",
 		"--tenant", "public",
 		"--namespace", "default",
 		"--name", "test-sink-create",
@@ -44,38 +55,43 @@ func TestCreateSinks(t *testing.T) {
 	}
 	out, _, err := TestSinksCommands(createSinksCmd, args)
 	assert.Nil(t, err)
-	fmt.Println(out.String())
-	assert.Equal(t, out.String(), "Created test-sink-create successfully\n")
+	assert.Equal(t, "Created test-sink-create successfully\n", out.String())
+
+	// create sink again
+	_, execErr, err := TestSinksCommands(createSinksCmd, args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NotNil(t, execErr)
+	assert.Equal(t, "code: 400 reason: Sink test-sink-create already exists", execErr.Error())
 }
 
 func TestFailureCreateSinks(t *testing.T) {
+	ctx := context.Background()
+	c := pulsar.DefaultStandalone()
+	c.WaitForLog("Function worker service started")
+	c.Start(ctx)
+	defer c.Stop(ctx)
+
+	requestURL, err := c.GetHTTPServiceURL(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	basePath, err := getDirHelp()
 	if basePath == "" || err != nil {
 		t.Error(err)
 	}
-	t.Logf("base path: %s", basePath)
 
 	narName := "dummy-pulsar-io-mysql.nar"
 	_, err = os.Create(narName)
-	assert.Nil(t, err)
-
 	defer os.Remove(narName)
-
-	failArgs := []string{"create",
-		"--tenant", "public",
-		"--namespace", "default",
-		"--name", "test-sink-create",
-		"--inputs", "test-topic",
-		"--archive", basePath + "/test/sinks/pulsar-io-jdbc-2.4.0.nar",
-		"--sink-config-file", basePath + "/test/sinks/mysql-jdbc-sink.yaml",
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	exceptedErr := "Sink test-sink-create already exists"
-	out, execErr, _ := TestSinksCommands(createSinksCmd, failArgs)
-	assert.True(t, strings.Contains(out.String(), exceptedErr))
-	assert.NotNil(t, execErr)
-
-	narFailArgs := []string{"create",
+	narFailArgs := []string{"--admin-service-url", requestURL, "create",
 		"--tenant", "public",
 		"--namespace", "default",
 		"--name", "test-sink-create-nar-fail",
@@ -83,9 +99,14 @@ func TestFailureCreateSinks(t *testing.T) {
 		"--archive", narName,
 	}
 
-	narErrInfo := "error: zip file is empty"
-	narOut, execErr, _ := TestSinksCommands(createSinksCmd, narFailArgs)
-	fmt.Println(narOut.String())
-	assert.True(t, strings.Contains(narOut.String(), narErrInfo))
+	_, execErr, err := TestSinksCommands(createSinksCmd, narFailArgs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	assert.NotNil(t, execErr)
+	assert.Equal(t, "code: 400 reason: Sink package does not have the correct format. "+
+		"Pulsar cannot determine if the package is a NAR package or JAR package.Sink classname "+
+		"is not provided and attempts to load it as a NAR package produced error: zip file is empty",
+		execErr.Error())
 }
