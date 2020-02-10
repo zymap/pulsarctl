@@ -1,4 +1,4 @@
-name: Pulsarctl Unit Tests Check
+name: Pulsarctl Functions Tests
 on:
   pull_request:
     branches:
@@ -47,13 +47,18 @@ jobs:
         docker cp pulsarctl:/pulsar/examples/api-examples.jar ${PWD}/test/functions/
 
         ls -al test/functions/
-        sleep 10
+
+    - name: Waiting for function worker service
+      run: ./test/script/check.sh functionWorker
 
     - name: Build
       run: go build .
       
-    - name: Test
-      run: |
-        docker ps
-        ./pulsarctl clusters list
-        go test -v $(go list ./... | grep -v bookkeeper | grep -v bkctl)
+    - name: Function tests
+      run: go test -test.timeout 2m -v $(go list ./... | grep functions)
+
+    - name: Sink tests
+      run: go test -test.timeout 2m -v $(go list ./... | grep sinks)
+
+    - name: Source tests
+      run: go test -test.timeout 2m -v $(go list ./... | grep sources)
