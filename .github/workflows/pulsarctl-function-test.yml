@@ -1,4 +1,4 @@
-name: Pulsarctl functions tests
+name: Pulsarctl Functions Tests
 on:
   pull_request:
     branches:
@@ -47,7 +47,9 @@ jobs:
         docker cp pulsarctl:/pulsar/examples/api-examples.jar ${PWD}/test/functions/
 
         ls -al test/functions/
-        sleep 10
+
+    - name: Waiting for function worker service
+      run: ./test/script/check.sh functionWorker
 
     - name: Build
       run: go build .
