@@ -149,7 +149,7 @@ func TestGetPerPartitionedStatsCmd(t *testing.T) {
 				Publishers:          []utils.PublisherStats{},
 				Subscriptions:       map[string]utils.SubscriptionStats{},
 				Replication:         map[string]utils.ReplicatorStats{},
-				DeDuplicationStatus: "Disable",
+				DeDuplicationStatus: "Disabled",
 			},
 		},
 	}
