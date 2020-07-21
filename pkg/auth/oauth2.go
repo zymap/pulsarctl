@@ -32,8 +32,12 @@ import (
 )
 
 const (
-	TypeClientCredential = "client_credentials"
-	TypeDeviceCode       = "device_code"
+	ConfigParamType                  = "type"
+	ConfigParamTypeClientCredentials = "client_credentials"
+	ConfigParamIssuerURL             = "issuerUrl"
+	ConfigParamAudience              = "audience"
+	ConfigParamKeyFile               = "privateKey"
+	ConfigParamClientID              = "clientId"
 )
 
 type OAuth2Provider struct {
@@ -49,6 +53,51 @@ func NewAuthenticationOauth2(issuer oauth2.Issuer, store store.Store) (*OAuth2Pr
 		clock:  clock2.RealClock{},
 		issuer: issuer,
 		store:  store,
+	}
+
+	err := p.loadGrant()
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+func NewAuthenticationOAuth2(params map[string]string, tp http.RoundTripper) (*OAuth2Provider, error) {
+	issuer := oauth2.Issuer{
+		IssuerEndpoint: params[ConfigParamIssuerURL],
+		ClientID:       params[ConfigParamClientID],
+		Audience:       params[ConfigParamAudience],
+	}
+
+	// initialize a store of authorization grants
+	st := store.NewMemoryStore()
+	switch params[ConfigParamType] {
+	case ConfigParamTypeClientCredentials:
+		flow, err := oauth2.NewDefaultClientCredentialsFlow(oauth2.ClientCredentialsFlowOptions{
+			KeyFile:          params[ConfigParamKeyFile],
+			AdditionalScopes: nil,
+		})
+		if err != nil {
+			return nil, err
+		}
+		grant, err := flow.Authorize(issuer.Audience)
+		if err != nil {
+			return nil, err
+		}
+		err = st.SaveGrant(issuer.Audience, *grant)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("unsupported authentication type: %s", params[ConfigParamType])
+	}
+
+	p := &OAuth2Provider{
+		clock:  clock2.RealClock{},
+		issuer: issuer,
+		store:  st,
+		T: tp,
 	}
 
 	err := p.loadGrant()
