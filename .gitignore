@@ -30,5 +30,6 @@ site/gen-pulsarctldocs/generators/build/*
 .DS_Store
 
 # Binary distribution
+.release
 pulsarctl*.tar.gz
 pulsarctl-site-*.tar.gz
